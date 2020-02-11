@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>iPhone X</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background: black;
+    }
+
+    #cover-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+
+    .video-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #video-studiomeal {
+      transform: scale(1);
+    }
+  </style>
+
+</head>
+<body>
+<div class="video-wrapper">
+  <video muted="" playsinline="" autoplay="" loop="" id="video" src="https://images.apple.com/media/us/iphone-x/2017/01df5b43-28e4-4848-bf20-490c34a926a7/overview/primary/hero/large_2x.mp4"></video>
+</div>
+<canvas id="cover-canvas"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.5.4/rxjs.umd.min.js" integrity="sha256-3JbAc2wecCc4ABnmHEKJ3rsAIFsFKS2xw7Y740PmCzY=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.5.4/rxjs.umd.min.js.map" integrity="undefined" crossorigin="anonymous"></script>
+<script>
+
+  class CustomCanvas {
+    element;
+    context;
+    elemPhone;
+    phoneWidth;
+    phoneHeight;
+    constructor(element, width = window.innerWidth, height = window.innerHeight) {
+      this.element = element;
+      this.context = element.getContext('2d');
+      element.width = width * 2;
+      element.height = height * 2;
+      element.style.width = width + 'px';
+      element.style.height = height + 'px';
+    }
+
+    async initImage() {
+      this.elemPhone = document.createElement('img');
+      this.elemPhone.src = 'phone.png';
+      this.phoneWidth = 1380; // 아이폰 이미지 기본 크기
+      this.phoneHeight = 3000; // 아이폰 이미지 기본 크기
+      return new Promise(resolve => {
+        this.elemPhone.addEventListener('load', () => {
+          this.draw.call(this);
+          resolve()
+        });
+      });
+    }
+
+    drawImage(videoScale = 1) {
+      const context = this.context;
+      const elemPhone = this.elemPhone;
+      const phoneWidth = this.phoneWidth;
+      const phoneHeight = this.phoneHeight;
+      const canvasWidth = this.element.width;
+      const canvasHeight = this.element.height;
+      context.save();
+      // context.translate((canvasWidth - phoneWidth * videoScale) * 0.5, (canvasHeight - phoneHeight * videoScale) * 0.5);
+      // context.drawImage(elemPhone, 0, 0, phoneWidth * videoScale, phoneHeight * videoScale);
+      context.translate( (canvasWidth - phoneWidth * videoScale) * 0.5, (canvasHeight - phoneHeight * videoScale) * 0.5 );
+      context.drawImage(elemPhone, 0, 0, phoneWidth * videoScale, phoneHeight * videoScale);
+      context.restore();
+    }
+
+    draw (videoScale = 1, triangleMove = 0, rectangleMove = 0) {
+      console.log(arguments);
+      const canvasWidth = this.element.width;
+      const canvasHeight = this.element.height;
+      const context = this.context;
+      context.clearRect(0, 0, canvasWidth, canvasHeight);
+
+      this.drawImage(videoScale);
+
+      context.fillStyle = 'black';
+
+      // 위 삼각형
+      context.beginPath();
+      context.moveTo(canvasWidth * 0.5 - 1500, -triangleMove - 1700);
+      context.lineTo(canvasWidth * 0.5, canvasHeight * 0.5 - 150 - triangleMove);
+      context.lineTo(canvasWidth * 0.5 + 1500, -triangleMove - 1700);
+      context.lineTo(canvasWidth * 0.5 - 1500, -triangleMove - 1700);
+      context.fill();
+      context.closePath();
+
+      // 아래 삼각형
+      context.beginPath();
+      context.moveTo(canvasWidth * 0.5 - 1500, canvasHeight + triangleMove + 1700);
+      context.lineTo(canvasWidth * 0.5, canvasHeight * 0.5 + 150 + triangleMove);
+      context.lineTo(canvasWidth * 0.5 + 1500, canvasHeight + triangleMove + 1700);
+      context.lineTo(canvasWidth * 0.5 - 1500, canvasHeight + triangleMove + 1700);
+      context.fill();
+      context.closePath();
+
+      // 왼쪽 삼각형
+      context.beginPath();
+      context.moveTo(canvasWidth * 0.5 - 1700 - triangleMove, -1700);
+      context.lineTo(canvasWidth * 0.5 - 130 - triangleMove, canvasHeight * 0.5);
+      context.lineTo(canvasWidth * 0.5 - 1700 - triangleMove, canvasHeight + 1700);
+      context.lineTo(canvasWidth * 0.5 - 1700 - triangleMove, -1700);
+      context.fill();
+      context.closePath();
+
+      // 오른쪽 삼각형
+      context.beginPath();
+      context.moveTo(canvasWidth * 0.5 + 1700 + triangleMove, -1700);
+      context.lineTo(canvasWidth * 0.5 + 130 + triangleMove, canvasHeight * 0.5);
+      context.lineTo(canvasWidth * 0.5 + 1700 + triangleMove, canvasHeight + 1700);
+      context.lineTo(canvasWidth * 0.5 + 1700 + triangleMove, -1700);
+      context.fill();
+      context.closePath();
+
+      // 박스 상, 하
+      context.fillRect(0, canvasHeight * 0.5 - 2600 - rectangleMove, canvasWidth, 2000);
+      context.fillRect(0, canvasHeight * 0.5 + 600 + rectangleMove, canvasWidth, 2000);
+    }
+  }
+
+  const scrollHandler = (from, to, action) => {
+    return () => {
+      const yOffset = window.pageYOffset;
+      if (yOffset < from || yOffset > to) {
+        return;
+      }
+      action(yOffset);
+    }
+  };
+
+  (() => {
+    const { fromEvent, operators, Observable } = rxjs;
+    const { scan } = operators;
+
+    document.body.style.height = window.innerHeight * 2 + 'px';
+    const elemCanvas = document.getElementById('cover-canvas');
+    const elemVideo = document.getElementById('video');
+
+    // fromEvent(document, 'resize').subscribe(() => { console.log('resizeHandler') });
+    // 전체 body가 height 의 2배이므로, scroll 은 최대 innerHeight 만큼 내려갈 수 있다.
+    const calculateRange = (from, to, current) => {
+      if (from.length !== 2 || to.length !== 2) {
+        throw new Error(`invalid from: ${from}, to: ${to}`);
+      }
+      if (current < from[0] || current > from[1]) {
+        throw new Error(`invalid from: ${from}, to: ${to}, current: ${current}`);
+      }
+      // const ratio = Math.abs((from[1] - current) / from[1] - from[0]);
+      const ratio = (current - from[0]) / (from[1] - from[0])
+      return (to[1] - to[0]) * ratio + to[0];
+    };
+
+    const canvas = new CustomCanvas(elemCanvas);
+    canvas.initImage().then(() => {
+      console.log('on load image.');
+    });
+    fromEvent(document, 'scroll').subscribe(() => {
+      requestAnimationFrame(scrollHandler(0, window.innerHeight, (scrollY) => {
+        const keyframes = [
+          {
+            videoScale: [1, 2],
+            triangleMove: [0, 200],
+            rectangleMove: [0, 500]
+          },
+          {
+            videoScale: [2, 0.5],
+            triangleMove: [200, 1000],
+            rectangleMove: [500, 500]
+          }
+        ];
+        const scrollFramesRange = [[0, window.innerHeight * 0.5], [window.innerHeight * 0.5, window.innerHeight + 1]];
+        const scrollPosition = scrollFramesRange.findIndex(arr => scrollY >= arr[0] && scrollY < arr[1]);
+        if (scrollPosition === -1) {
+          return;
+        }
+        const keyframe = keyframes[scrollPosition];
+        const scrollRange = scrollFramesRange[scrollPosition];
+        // range: [0, window.innerHeight*0.5], [1, 2], current: yOffset
+        const videoScale = calculateRange(scrollRange, keyframe.videoScale, scrollY);
+        elemVideo.style.transform = 'scale(' + videoScale + ')';
+        canvas.draw(
+          videoScale,
+          calculateRange(scrollRange, keyframe.triangleMove, scrollY),
+          calculateRange(scrollRange, keyframe.rectangleMove, scrollY),
+        );
+      }))
+    });
+
+  })();
+</script>
+</body>
+</html>
+
